@@ -1,0 +1,75 @@
+import processing.sound.*;
+
+import oscP5.*;
+import netP5.*;
+import processing.sound.*;
+
+OscP5 dataSender;
+NetAddress myRemoteLocation;
+
+int robotState = 0;
+int sendPort = 9000;
+String messageAddress = "/robotState"; 
+
+SoundFile music;
+
+void setup() {
+  size(700, 700);
+  dataSender = new OscP5(this, 12000);
+  myRemoteLocation = new NetAddress("localhost", sendPort);
+  music = new SoundFile (this, "assets/elise.mp3");
+  music.play();
+  music.amp(0);
+  
+}
+
+void draw()
+{
+  background(255);
+  fill(0);
+  textSize(20);
+  //text("Move the mouse across the screen to send an OSC message", 10, 10);
+
+  int sectionWidth = width / 3;
+  for (int i = 1; i <= 3; i++) {
+    if (mouseX > sectionWidth * (i - 1) && mouseX <= sectionWidth * i) {
+      robotState = i;
+      sendMessage();
+      noStroke();
+      fill(0, 0, 0, 45); 
+      rect(sectionWidth * (i - 1), 0, sectionWidth, height);
+    }
+  }
+
+  // Start the loop at 0 to include the number label for section 1
+  for (int i = 0; i < 3; i++) {
+   // stroke(0);
+   // line(sectionWidth * (i + 1), 0, sectionWidth * (i + 1), height);
+    fill(0);
+    textSize(20);
+    //text(str(i + 1), sectionWidth * i + sectionWidth / 2, height / 2);
+    if (i == 0)
+    text("Pause", sectionWidth * i + sectionWidth / 3, height / 2);
+    else if (i == 1)
+    text("Low", sectionWidth * i + sectionWidth / 3, height / 2);
+    else if ( i == 2)
+    text("High", sectionWidth * i + sectionWidth / 3, height / 2);
+  
+}
+
+if (robotState == 1)
+music.amp(0);
+else
+ { 
+  float a = map(robotState, 0, 3, 0.01, 1.0);
+  music.amp(a);
+  music.rate(a);}
+}
+
+void sendMessage()
+{
+  OscMessage myMessage = new OscMessage(messageAddress);
+  myMessage.add(robotState);
+  dataSender.send(myMessage, myRemoteLocation);
+  println("sending message: " + myMessage);
+}
